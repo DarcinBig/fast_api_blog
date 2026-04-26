@@ -1,7 +1,7 @@
 {
-  "name": "FastAPI Blog",
-  "short_name": "FastAPI Blog",
-  "description": "FastAPI Tutorial",
+  "name": "Algorithm & Blues",
+  "short_name": "Algorithm & Blues",
+  "description": "My first FastAPI application - A blog where people can publish articles about tech industry (programming, AI, and more.)",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#ffffff",
@@ -20,13 +20,13 @@
       "purpose": "any"
     },
     {
-      "src": "/static/icons/icon-192.png",
+      "src": "/static/icons/icon.png",
       "sizes": "192x192",
       "type": "image/png",
       "purpose": "any maskable"
     },
     {
-      "src": "/static/icons/icon-512.png",
+      "src": "/static/icons/iconpng",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "any maskable"
