@@ -1,16 +1,41 @@
-# This is a sample Python script.
+from fastapi import FastAPI, Request
+from fastapi.staticfiles import StaticFiles
+from fastapi.templating import Jinja2Templates
 
-# Press Ctrl+F5 to execute it or replace it with your code.
-# Press Double Shift to search everywhere for classes, files, tool windows, actions, and settings.
+app = FastAPI()
 
+app.mount("/static", StaticFiles(directory="static"), name="static")
 
-def print_hi(name):
-    # Use a breakpoint in the code line below to debug your script.
-    print(f'Hi, {name}')  # Press F9 to toggle the breakpoint.
+templates = Jinja2Templates(directory="templates")
 
+posts: list[dict] = [
+    {
+        "id": 1,
+        "author": "Jane Maxwell",
+        "title": "FastAPI is Awesome",
+        "content": "This framework is really easy to use and super fast.",
+        "date_posted": "April 26, 2026",
+    },
+    {
+        "id": 2,
+        "author": "John Doe",
+        "title": "Python is Great for Web Development",
+        "content": "Python is a great language for web development, and FastAPI makes it even better.",
+        "date_posted": "April 26, 2026",
+    }
+]
 
-# Press the green button in the gutter to run the script.
-if __name__ == '__main__':
-    print_hi('PyCharm')
+# Page routes
+@app.get("/", include_in_schema=False, name="home")
+@app.get("/posts", include_in_schema=False, name="posts")
+def home(request: Request):
+    return templates.TemplateResponse(
+        request,
+        "home.html",
+        {"posts": posts, "title": "Home"}
+    )
 
-# See PyCharm help at https://www.jetbrains.com/help/pycharm/
+# APIs routes
+@app.get("/api/posts")
+def get_posts():
+    return posts
