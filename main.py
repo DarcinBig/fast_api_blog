@@ -1,5 +1,4 @@
 from typing import Annotated
-from unittest import result
 
 from fastapi import Depends, FastAPI, HTTPException, Request, status
 from fastapi.exceptions import RequestValidationError
@@ -101,7 +100,10 @@ def get_user(user_id: int, db: Annotated[Session, Depends(get_db)]):
     result = db.execute(select(models.User).where(models.User.id == user_id))
     user = result.scalars().first()
 
-    raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found") if not user else user
+    # refactor: replace the ternary condition statement by an if statement to test the availability of a user
+    if user:
+        return user
+    raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found")
 
 @app.get("/api/users/{user_id}/posts", response_model=list[PostResponse])
 def get_user_posts(user_id: int, db: Annotated[Session, Depends(get_db)]):
@@ -151,7 +153,10 @@ def get_post(post_id: int, db: Annotated[Session, Depends(get_db)]):
     result = db.execute(select(models.Post).where(models.Post.id == post_id))
     post = result.scalars().first()
 
-    raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Post not found") if not post else post
+    # refactor: replace the ternary condition statement by an if statement to test the availability of a post
+    if post:
+        return post
+    raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Post not found")
 
 @app.exception_handler(StarletteHTTPException)
 def general_http_exception_handler(request: Request, exception: StarletteHTTPException):
