@@ -1,0 +1,6 @@
+### dotenv ###
+.env
+
+### Database Files ###
+.sqlite3
+.db
