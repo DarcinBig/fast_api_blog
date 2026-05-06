@@ -58,9 +58,9 @@ async def home(request: Request, db: Annotated[AsyncSession, Depends(get_db)]):
 
 @app.get("/posts/{post_id}", include_in_schema=False)
 async def post_page(
-        request: Request,
-        post_id: int,
-        db: Annotated[AsyncSession, Depends(get_db)],
+    request: Request,
+    post_id: int,
+    db: Annotated[AsyncSession, Depends(get_db)],
 ):
     result = await db.execute(
         select(models.Post)
@@ -80,9 +80,9 @@ async def post_page(
 
 @app.get("/users/{user_id}/posts", include_in_schema=False, name="user_posts")
 async def user_posts_page(
-        request: Request,
-        user_id: int,
-        db: Annotated[AsyncSession, Depends(get_db)],
+    request: Request,
+    user_id: int,
+    db: Annotated[AsyncSession, Depends(get_db)],
 ):
     result = await db.execute(select(models.User).where(models.User.id == user_id))
     user = result.scalars().first()
@@ -104,6 +104,7 @@ async def user_posts_page(
         {"posts": posts, "user": user, "title": f"{user.username}'s Posts"},
     )
 
+
 @app.get("/login", include_in_schema=False)
 async def login_page(request: Request):
     return templates.TemplateResponse(
@@ -111,6 +112,7 @@ async def login_page(request: Request):
         "login.html",
         {"title": "Login"},
     )
+
 
 @app.get("/register", include_in_schema=False)
 async def register_page(request: Request):
@@ -120,6 +122,7 @@ async def register_page(request: Request):
         {"title": "Register"},
     )
 
+
 @app.get("/account", include_in_schema=False)
 async def account_page(request: Request):
     return templates.TemplateResponse(
@@ -128,10 +131,11 @@ async def account_page(request: Request):
         {"title": "Account"},
     )
 
+
 @app.exception_handler(StarletteHTTPException)
 async def general_http_exception_handler(
-        request: Request,
-        exception: StarletteHTTPException,
+    request: Request,
+    exception: StarletteHTTPException,
 ):
     if request.url.path.startswith("/api"):
         return await http_exception_handler(request, exception)
@@ -156,8 +160,8 @@ async def general_http_exception_handler(
 
 @app.exception_handler(RequestValidationError)
 async def validation_exception_handler(
-        request: Request,
-        exception: RequestValidationError,
+    request: Request,
+    exception: RequestValidationError,
 ):
     if request.url.path.startswith("/api"):
         return await request_validation_exception_handler(request, exception)
