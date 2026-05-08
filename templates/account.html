@@ -59,26 +59,41 @@
         <small class="text-body-secondary">Maximum file size: 5MB. Supported formats: JPEG, PNG, GIF, WebP.</small>
     </div>
     <hr>
-    <!-- Password Reset Section (Placeholder) -->
-    <div class="mb-4">
-        <h5>Change Password</h5>
-        <p class="text-body-secondary">Password reset coming in a future tutorial.</p>
-        <form>
-            <div class="mb-3">
-                <label class="form-label">Current Password</label>
-                <input type="password" class="form-control" disabled>
-            </div>
-            <div class="mb-3">
-                <label class="form-label">New Password</label>
-                <input type="password" class="form-control" disabled>
-            </div>
-            <div class="mb-3">
-                <label class="form-label">Confirm New Password</label>
-                <input type="password" class="form-control" disabled>
-            </div>
-            <button type="submit" class="btn btn-primary" disabled>Change Password</button>
-        </form>
-    </div>
+     <!-- Change Password Section -->
+        <div class="mb-4">
+            <h5>Change Password</h5>
+            <form id="changePasswordForm">
+                <div class="mb-3">
+                    <label for="currentPassword" class="form-label">Current Password</label>
+                    <input type="password"
+                           class="form-control"
+                           id="currentPassword"
+                           name="current_password"
+                           required>
+                </div>
+                <div class="mb-3">
+                    <label for="newPassword" class="form-label">New Password</label>
+                    <input type="password"
+                           class="form-control"
+                           id="newPassword"
+                           name="new_password"
+                           required
+                           minlength="8">
+                    <div class="form-text">Password must be at least 8 characters.</div>
+                </div>
+                <div class="mb-3">
+                    <label for="confirmNewPassword" class="form-label">Confirm New Password</label>
+                    <input type="password"
+                           class="form-control"
+                           id="confirmNewPassword"
+                           name="confirm_new_password"
+                           required
+                           minlength="8">
+                </div>
+                <button type="submit" class="btn btn-primary" id="changePasswordBtn">Change Password</button>
+            </form>
+        </div>
+        <hr>
     <hr>
     <!-- Logout Button -->
     <div class="mb-4">
@@ -130,34 +145,35 @@
     </div>
 </div>
 {% endblock content %}
+
 {% block scripts %}
-<script type="module">
-    import {getCurrentUser, getToken, logout, clearUserCache} from '/static/js/auth.js';
-    import {getErrorMessage, showModal, hideModal} from '/static/js/utils.js';
+    <script type="module">
+  import { getCurrentUser, getToken, logout, clearUserCache } from '/static/js/auth.js';
+  import { getErrorMessage, showModal, hideModal } from '/static/js/utils.js';
 
-    let currentUserId = null;
+  let currentUserId = null;
 
-    // Load current user data and populate form
-    async function loadUserData() {
-        const user = await getCurrentUser();
+  // Load current user data and populate form
+  async function loadUserData() {
+    const user = await getCurrentUser();
 
-        // Redirect to login if not authenticated
-        if (!user) {
-            window.location.href = '/login';
-            return;
-        }
-
-        currentUserId = user.id;
-
-        // Populate display info
-        document.getElementById('displayUsername').textContent = user.username;
-        document.getElementById('displayEmail').textContent = user.email;
-        document.getElementById('profileImage').src = user.image_path;
-
-        // Populate form fields
-        document.getElementById('username').value = user.username;
-        document.getElementById('email').value = user.email;
+    // Redirect to login if not authenticated
+    if (!user) {
+      window.location.href = '/login';
+      return;
     }
+
+    currentUserId = user.id;
+
+    // Populate display info
+    document.getElementById('displayUsername').textContent = user.username;
+    document.getElementById('displayEmail').textContent = user.email;
+    document.getElementById('profileImage').src = user.image_path;
+
+    // Populate form fields
+    document.getElementById('username').value = user.username;
+    document.getElementById('email').value = user.email;
+  }
 
     // Image Preview Handler
     const pictureInput = document.getElementById('pictureInput');
@@ -165,203 +181,273 @@
     const uploadBtn = document.getElementById('uploadPictureBtn');
 
     pictureInput.addEventListener('change', (event) => {
-        const file = event.target.files[0];
-        if (file) {
-            const reader = new FileReader();
-            reader.onload = (e) => {
-                imagePreview.src = e.target.result;
-                imagePreview.classList.remove('d-none');
-            };
-            reader.readAsDataURL(file);
+      const file = event.target.files[0];
+      if (file) {
+        const reader = new FileReader();
+        reader.onload = (e) => {
+          imagePreview.src = e.target.result;
+          imagePreview.classList.remove('d-none');
+        };
+        reader.readAsDataURL(file);
 
-            uploadBtn.disabled = false;
-        } else {
-            imagePreview.classList.add('d-none');
-            uploadBtn.disabled = true;
-        }
-    });
-
-    // Upload Profile Picture Handler
-    uploadBtn.addEventListener('click', async () => {
-        const token = getToken();
-        if (!token) {
-            window.location.href = '/login';
-            return;
-        }
-
-        const file = pictureInput.files[0];
-        if (!file) {
-            return;
-        }
-
-        // Use FormData for file uploads (not JSON)
-        const formData = new FormData();
-        formData.append('file', file);
-
+        uploadBtn.disabled = false;
+      } else {
+        imagePreview.classList.add('d-none');
         uploadBtn.disabled = true;
-        uploadBtn.textContent = 'Uploading...';
-
-        try {
-            const response = await fetch(`/api/users/${currentUserId}/picture`, {
-                method: 'PATCH',
-                headers: {
-                    // Don't set Content-Type — browser sets multipart boundary automatically
-                    'Authorization': `Bearer ${token}`,
-                },
-                body: formData,
-            });
-
-            if (response.status === 401) {
-                window.location.href = '/login';
-                return;
-            }
-
-            if (response.status === 403) {
-                document.getElementById('errorMessage').textContent =
-                    'You are not authorized to update this profile picture.';
-                showModal('errorModal');
-                return;
-            }
-
-            if (response.ok) {
-                const data = await response.json();
-
-                clearUserCache();
-
-                document.getElementById('profileImage').src = data.image_path;
-
-                pictureInput.value = '';
-                imagePreview.classList.add('d-none');
-
-                document.getElementById('successMessage').textContent =
-                    'Profile picture updated successfully!';
-                showModal('successModal');
-            } else {
-                const error = await response.json();
-                document.getElementById('errorMessage').textContent = getErrorMessage(error);
-                showModal('errorModal');
-            }
-        } catch (error) {
-            document.getElementById('errorMessage').textContent =
-                'Network error. Please check your connection and try again.';
-            showModal('errorModal');
-        } finally {
-            uploadBtn.disabled = pictureInput.files.length === 0;
-            uploadBtn.textContent = 'Upload';
-        }
+      }
     });
 
-    // Update Profile Form Handler
-    const updateForm = document.getElementById('updateProfileForm');
-    updateForm.addEventListener('submit', async (event) => {
-        event.preventDefault();
+  // Upload Profile Picture Handler
+  uploadBtn.addEventListener('click', async () => {
+    const token = getToken();
+    if (!token) {
+      window.location.href = '/login';
+      return;
+    }
 
-        const token = getToken();
-        if (!token) {
-            window.location.href = '/login';
-            return;
-        }
+    const file = pictureInput.files[0];
+    if (!file) {
+      return;
+    }
 
-        const formData = new FormData(updateForm);
-        const userData = Object.fromEntries(formData.entries());
+    // Use FormData for file uploads (not JSON)
+    const formData = new FormData();
+    formData.append('file', file);
 
-        try {
-            const response = await fetch(`/api/users/${currentUserId}`, {
-                method: 'PATCH',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${token}`,
-                },
-                body: JSON.stringify(userData),
-            });
+    uploadBtn.disabled = true;
+    uploadBtn.textContent = 'Uploading...';
 
-            if (response.status === 401) {
-                window.location.href = '/login';
-                return;
-            }
+    try {
+      const response = await fetch(`/api/users/${currentUserId}/picture`, {
+        method: 'PATCH',
+        headers: {
+          // Don't set Content-Type — browser sets multipart boundary automatically
+          'Authorization': `Bearer ${token}`,
+        },
+        body: formData,
+      });
 
-            if (response.status === 403) {
-                document.getElementById('errorMessage').textContent =
-                    'You are not authorized to update this profile.';
-                showModal('errorModal');
-                return;
-            }
+      if (response.status === 401) {
+        window.location.href = '/login';
+        return;
+      }
 
-            if (response.ok) {
-                const data = await response.json();
+      if (response.status === 403) {
+        document.getElementById('errorMessage').textContent =
+          'You are not authorized to update this profile picture.';
+        showModal('errorModal');
+        return;
+      }
 
-                // Clear cache so next getCurrentUser() fetches fresh data
-                clearUserCache();
+      if (response.ok) {
+        const data = await response.json();
 
-                // Update display
-                document.getElementById('displayUsername').textContent = data.username;
-                document.getElementById('displayEmail').textContent = data.email;
+        clearUserCache();
 
-                document.getElementById('successMessage').textContent =
-                    'Profile updated successfully!';
-                showModal('successModal');
-            } else {
-                const error = await response.json();
-                document.getElementById('errorMessage').textContent = getErrorMessage(error);
-                showModal('errorModal');
-            }
-        } catch (error) {
-            document.getElementById('errorMessage').textContent =
-                'Network error. Please check your connection and try again.';
-            showModal('errorModal');
-        }
-    });
+        document.getElementById('profileImage').src = data.image_path;
 
-    // Logout Handler
-    document.getElementById('logoutBtn').addEventListener('click', logout);
+        pictureInput.value = '';
+        imagePreview.classList.add('d-none');
 
-    // Delete Account Handler
-    document.getElementById('confirmDeleteAccount').addEventListener('click', async () => {
-        const token = getToken();
-        if (!token) {
-            window.location.href = '/login';
-            return;
-        }
+        document.getElementById('successMessage').textContent =
+          'Profile picture updated successfully!';
+        showModal('successModal');
+      } else {
+        const error = await response.json();
+        document.getElementById('errorMessage').textContent = getErrorMessage(error);
+        showModal('errorModal');
+      }
+    } catch (error) {
+      document.getElementById('errorMessage').textContent =
+        'Network error. Please check your connection and try again.';
+      showModal('errorModal');
+    } finally {
+      uploadBtn.disabled = pictureInput.files.length === 0;
+      uploadBtn.textContent = 'Upload';
+    }
+  });
 
-        try {
-            const response = await fetch(`/api/users/${currentUserId}`, {
-                method: 'DELETE',
-                headers: {
-                    'Authorization': `Bearer ${token}`,
-                },
-            });
+  // Update Profile Form Handler
+  const updateForm = document.getElementById('updateProfileForm');
+  updateForm.addEventListener('submit', async (event) => {
+    event.preventDefault();
 
-            if (response.status === 401) {
-                window.location.href = '/login';
-                return;
-            }
+    const token = getToken();
+    if (!token) {
+      window.location.href = '/login';
+      return;
+    }
 
-            if (response.status === 403) {
-                document.getElementById('errorMessage').textContent =
-                    'You are not authorized to delete this account.';
-                hideModal('deleteAccountModal');
-                showModal('errorModal');
-                return;
-            }
+    const formData = new FormData(updateForm);
+    const userData = Object.fromEntries(formData.entries());
 
-            if (response.status === 204) {
-                // Account deleted successfully
-                localStorage.removeItem('access_token');
-                window.location.href = '/';
-            } else {
-                const error = await response.json();
-                document.getElementById('errorMessage').textContent = getErrorMessage(error);
-                hideModal('deleteAccountModal');
-                showModal('errorModal');
-            }
-        } catch (error) {
-            document.getElementById('errorMessage').textContent =
-                'Network error. Please check your connection and try again.';
-            showModal('errorModal');
-        }
-    });
+    try {
+      const response = await fetch(`/api/users/${currentUserId}`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+        },
+        body: JSON.stringify(userData),
+      });
 
-    // Load user data on page load
-    loadUserData();
-</script>
+      if (response.status === 401) {
+        window.location.href = '/login';
+        return;
+      }
+
+      if (response.status === 403) {
+        document.getElementById('errorMessage').textContent =
+          'You are not authorized to update this profile.';
+        showModal('errorModal');
+        return;
+      }
+
+      if (response.ok) {
+        const data = await response.json();
+
+        // Clear cache so next getCurrentUser() fetches fresh data
+        clearUserCache();
+
+        // Update display
+        document.getElementById('displayUsername').textContent = data.username;
+        document.getElementById('displayEmail').textContent = data.email;
+
+        document.getElementById('successMessage').textContent =
+          'Profile updated successfully!';
+        showModal('successModal');
+      } else {
+        const error = await response.json();
+        document.getElementById('errorMessage').textContent = getErrorMessage(error);
+        showModal('errorModal');
+      }
+    } catch (error) {
+      document.getElementById('errorMessage').textContent =
+        'Network error. Please check your connection and try again.';
+      showModal('errorModal');
+    }
+  });
+
+  // Logout Handler
+  document.getElementById('logoutBtn').addEventListener('click', logout);
+
+  // Delete Account Handler
+  document.getElementById('confirmDeleteAccount').addEventListener('click', async () => {
+    const token = getToken();
+    if (!token) {
+      window.location.href = '/login';
+      return;
+    }
+
+    try {
+      const response = await fetch(`/api/users/${currentUserId}`, {
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+        },
+      });
+
+      if (response.status === 401) {
+        window.location.href = '/login';
+        return;
+      }
+
+      if (response.status === 403) {
+        document.getElementById('errorMessage').textContent =
+          'You are not authorized to delete this account.';
+        hideModal('deleteAccountModal');
+        showModal('errorModal');
+        return;
+      }
+
+      if (response.status === 204) {
+        // Account deleted successfully
+        localStorage.removeItem('access_token');
+        window.location.href = '/';
+      } else {
+        const error = await response.json();
+        document.getElementById('errorMessage').textContent = getErrorMessage(error);
+        hideModal('deleteAccountModal');
+        showModal('errorModal');
+      }
+    } catch (error) {
+      document.getElementById('errorMessage').textContent =
+        'Network error. Please check your connection and try again.';
+      showModal('errorModal');
+    }
+  });
+
+  // Load user data on page load
+  loadUserData();
+
+  // Change Password Handler
+  const changePasswordForm = document.getElementById('changePasswordForm');
+  const changePasswordBtn = document.getElementById('changePasswordBtn');
+
+  changePasswordForm.addEventListener('submit', async (event) => {
+    event.preventDefault();
+
+    const token = getToken();
+    if (!token) {
+      window.location.href = '/login';
+      return;
+    }
+
+    const currentPassword = document.getElementById('currentPassword').value;
+    const newPassword = document.getElementById('newPassword').value;
+    const confirmNewPassword = document.getElementById('confirmNewPassword').value;
+
+    // Client-side password matching validation
+    if (newPassword !== confirmNewPassword) {
+      document.getElementById('errorMessage').textContent = 'New passwords do not match.';
+      showModal('errorModal');
+      return;
+    }
+
+    // Disable button during submission
+    changePasswordBtn.disabled = true;
+    changePasswordBtn.textContent = 'Changing...';
+
+    try {
+      const response = await fetch('/api/users/me/password', {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          current_password: currentPassword,
+          new_password: newPassword,
+        }),
+      });
+
+      if (response.status === 401) {
+        window.location.href = '/login';
+        return;
+      }
+
+      if (response.ok) {
+        // Clear form
+        changePasswordForm.reset();
+
+        document.getElementById('successMessage').textContent =
+          'Password changed successfully!';
+        showModal('successModal');
+      } else {
+        const error = await response.json();
+        document.getElementById('errorMessage').textContent = getErrorMessage(error);
+        showModal('errorModal');
+      }
+    } catch (error) {
+      document.getElementById('errorMessage').textContent =
+        'Network error. Please check your connection and try again.';
+      showModal('errorModal');
+    } finally {
+      // Re-enable button
+      changePasswordBtn.disabled = false;
+      changePasswordBtn.textContent = 'Change Password';
+    }
+  });
+
+    </script>
 {% endblock scripts %}

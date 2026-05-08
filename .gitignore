@@ -1,5 +1,13 @@
-### dotenv ###
+### PyCharm ###
+.junie
+.idea
+
+### VS Code ###
+.vscode/
+
+### Environment ###
 .env
+.venv
 
 ### Database Files ###
 .sqlite3
