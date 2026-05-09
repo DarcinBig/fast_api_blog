@@ -10,6 +10,7 @@ dependencies = [
     "fastapi[standard]>=0.136.1",
     "greenlet>=3.5.0",
     "pillow>=12.2.0",
+    "psycopg[binary]>=3.3.4",
     "pwdlib[argon2]>=0.3.0",
     "pydantic-settings>=2.14.0",
     "pyjwt>=2.12.1",
