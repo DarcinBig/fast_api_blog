@@ -33,7 +33,12 @@ class User(Base):
     @property
     def image_path(self) -> str:
         if self.image_file:
+            # If it's already a full HTTP/HTTPS URL (GitHub), return it as is
+            if self.image_file.startswith(('http://', 'https://')):
+                return self.image_file
+            # Legacy local file (just filename) – serve from media folder
             return f"/media/profile_pics/{self.image_file}"
+        # Default fallback
         return "/static/profile_pics/default.jpg"
 
 class Post(Base):

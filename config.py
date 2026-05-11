@@ -28,4 +28,10 @@ class Settings(BaseSettings):
 
     frontend_url: str = "http://localhost:8080"
 
+    github_api_url: str = "https://api.github.com"
+    personal_access_token: str
+    repo_owner: str
+    repo_name: str
+    branch: str = "main"
+
 settings = Settings()  # type: ignore[call-arg] # Loaded from .env file
