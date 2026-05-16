@@ -23,10 +23,10 @@ class Settings(BaseSettings):
     mail_port: int = 587
     mail_username: str = ""
     mail_password: SecretStr = SecretStr("")
-    mail_form: str = "noreply@example.com"
+    mail_from: str = "noreply@example.com"
     mail_use_tls: bool = True
 
-    frontend_url: str = "http://localhost:8080"
+    frontend_url: str = "http://localhost:8000"
 
     github_api_url: str = "https://api.github.com"
     personal_access_token: str
